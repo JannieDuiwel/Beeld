@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<!--
+  Lock the renderer down. default-src 'none' means nothing loads unless a
+  directive below allows it, so a stray <img src="http://..."> or an injected
+  <script src> simply fails instead of reaching the network.
+
+  Widen this only as far as the app actually needs:
+    img-src ... file:   to show local files by path (thumbnails of saved output)
+    img-src ... data:   to show images held in memory as data URIs
+    connect-src https:  if the RENDERER itself calls an API (prefer doing that
+                        in main instead, where the key never touches web content)
+-->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+<title>Foundation</title>
+<style>
+  /* Tokens first, so a rebrand is one block rather than a search-and-replace. */
+  :root {
+    --bg: #12131a;
+    --panel: #1a1c26;
+    --panel-2: #21242f;
+    --line: #2c3040;
+    --text: #e6e8ef;
+    --dim: #9aa0b4;
+    --faint: #6b7288;
+    --accent: #6ea8fe;
+    --good: #6ee7a8;
+    --bad: #f58a8a;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  /*
+    A class rule such as `.row { display: flex }` outranks the UA stylesheet's
+    [hidden] { display: none }, so any element toggled via the hidden attribute
+    stays stubbornly visible. This puts the attribute back in charge. Keep it.
+  */
+  [hidden] { display: none !important; }
+
+  html, body {
+    margin: 0; height: 100%;
+    background: var(--bg); color: var(--text);
+    font: 13px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  }
+
+  button, input, select, textarea { font: inherit; color: inherit; }
+
+  .wrap { max-width: 560px; margin: 0 auto; padding: 28px 22px; }
+
+  h1 { font-size: 17px; margin: 0 0 4px; }
+  .lede { color: var(--faint); margin: 0 0 24px; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
+  }
+
+  label {
+    display: block; margin-bottom: 5px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+    color: var(--faint);
+  }
+
+  input[type=text] {
+    width: 100%; padding: 8px 10px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 8px; outline: none;
+  }
+  input[type=text]:focus { border-color: var(--accent); }
+
+  button {
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 12px; cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary {
+    background: var(--accent); border-color: var(--accent);
+    color: #0d1220; font-weight: 600;
+  }
+
+  .row { display: flex; gap: 8px; align-items: center; }
+  .spacer { flex: 1; }
+
+  .status { margin-top: 10px; min-height: 18px; font-size: 12px; color: var(--dim); }
+  .status.ok { color: var(--good); }
+  .status.bad { color: var(--bad); white-space: pre-wrap; }
+  .hint { color: var(--faint); font-size: 12px; margin-top: 6px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Foundation</h1>
+    <p class="lede">Skeleton for a local-first Windows app. Replace this panel with the real thing.</p>
+
+    <div class="card">
+      <label for="note">A setting that persists</label>
+      <input type="text" id="note" placeholder="Type something, then restart the app" />
+      <div class="hint">Saved to settings.json in userData, written atomically.</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <button class="primary" id="work">Do some work</button>
+        <button id="reset">Reset settings</button>
+        <div class="spacer"></div>
+        <span class="status" id="count"></span>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="hint">Demonstrates an async invoke with progress events coming back.</div>
+    </div>
+  </div>
+
+  <script src="panel.js"></script>
+</body>
+</html>

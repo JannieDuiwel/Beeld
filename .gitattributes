@@ -1,0 +1,8 @@
+# Everything here is authored with LF. Normalising on both sides keeps the
+# repo consistent and stops git warning on every `add` from Windows.
+* text=auto eol=lf
+
+# Generated binaries, should git ever be pointed at them.
+*.png binary
+*.ico binary
+*.exe binary

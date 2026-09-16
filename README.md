@@ -7,7 +7,10 @@ you feel like paying for — a free-credit API, a pay-as-you-go one, or ComfyUI 
 your own GPU. The same prompt and the same workflow run on all three.
 
 Built as a sibling to [Vloei](../Vloei): a thin local UI over a heavy engine,
-except here the engine is behind an HTTP call rather than bundled in.
+except here the engine is behind an HTTP call rather than bundled in. The
+architecture both apps share is written up in [FOUNDATION.md](FOUNDATION.md),
+with a runnable skeleton in [`foundation/`](foundation) to start the next one
+from.
 
 ---
 
@@ -160,6 +163,7 @@ src/
 tools/
   check-models.js   Diffs the catalogue against live Replicate schemas
   make-icons.js     Generates src/assets/*.png
+foundation/         Runnable skeleton of this layout - see FOUNDATION.md
 ```
 
 ### Keeping the catalogue honest

@@ -1,5 +1,5 @@
-appId: com.janherman.beeld
-productName: Beeld
+appId: com.janherman.foundation
+productName: Foundation
 copyright: Copyright © 2026 Jan-Herman Schlechter
 
 directories:
@@ -11,12 +11,10 @@ files:
   - package.json
   - "!**/*.map"
   - "!tools/**"
-  # The skeleton is a sibling project kept in this repo, not part of the app.
-  - "!foundation/**"
 
-# Nothing native to unpack: every backend is reached over HTTP, and the only
-# image processing is Electron's own nativeImage. That is the whole reason this
-# app installs cleanly where Vloei needed koffi and ONNX carve-outs.
+# Keep asar on. If you add a native module (.node) or files fetched by URL at
+# runtime, they cannot be read from inside the archive - add an asarUnpack entry
+# for those paths rather than turning asar off wholesale.
 asar: true
 
 win:
@@ -32,5 +30,5 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: always
   createStartMenuShortcut: true
-  shortcutName: Beeld
+  shortcutName: Foundation
   runAfterFinish: true

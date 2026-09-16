@@ -1,0 +1,23 @@
+{
+  "name": "foundation",
+  "productName": "Foundation",
+  "version": "1.0.0",
+  "description": "Skeleton for a local-first Windows Electron app. Copy this directory, rename, build.",
+  "main": "src/main/main.js",
+  "author": "Jan-Herman Schlechter",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "icons": "node tools/make-icons.js",
+    "postinstall": "node tools/make-icons.js",
+    "build": "npm run icons && electron-builder --win --x64",
+    "test": "node test/store.test.js"
+  },
+  "devDependencies": {
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {}
+}
