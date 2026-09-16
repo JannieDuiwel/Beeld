@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<!-- No remote origins: everything the renderer needs is local, and images
+     arrive as data URIs, so the policy can stay this tight. -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src 'self' data: file:; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+<title>Beeld</title>
+<style>
+  :root {
+    --bg: #12131a;
+    --panel: #1a1c26;
+    --panel-2: #21242f;
+    --line: #2c3040;
+    --text: #e6e8ef;
+    --dim: #9aa0b4;
+    --faint: #6b7288;
+    --accent: #6ea8fe;
+    --accent-dim: #2d4a7a;
+    --good: #6ee7a8;
+    --warn: #f5c76a;
+    --bad: #f58a8a;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  /* A class rule such as `.row { display: flex }` outranks the UA stylesheet's
+     [hidden] { display: none }, so any element toggled via the hidden attribute
+     stays visible. This puts the attribute back in charge. */
+  [hidden] { display: none !important; }
+
+  html, body {
+    margin: 0; height: 100%;
+    background: var(--bg); color: var(--text);
+    font: 13px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  button, input, select, textarea { font: inherit; color: inherit; }
+
+  /* --- layout ------------------------------------------------------------ */
+
+  .app { display: grid; grid-template-columns: 340px 1fr; height: 100%; }
+
+  .side {
+    background: var(--panel); border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  .side-scroll { overflow-y: auto; padding: 14px; flex: 1; min-height: 0; }
+
+  .main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+
+  header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  header .title { font-weight: 600; letter-spacing: .2px; }
+  header .sub { color: var(--faint); font-size: 12px; }
+  header .spacer { flex: 1; }
+
+  /* --- controls ---------------------------------------------------------- */
+
+  .field { margin-bottom: 14px; }
+  .field > label {
+    display: block; margin-bottom: 5px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+    color: var(--faint);
+  }
+
+  select, input[type=text], input[type=password], textarea {
+    width: 100%; padding: 8px 10px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 8px; outline: none;
+  }
+  select:focus, input:focus, textarea:focus { border-color: var(--accent-dim); }
+  textarea { resize: vertical; min-height: 84px; }
+
+  .hint { margin-top: 6px; color: var(--faint); font-size: 12px; }
+  .hint.warn { color: var(--warn); }
+  .hint.bad { color: var(--bad); white-space: pre-wrap; }
+  .hint.good { color: var(--good); }
+
+  /* Label on the left, its action button on the right. */
+  .field-head { display: flex; align-items: center; justify-content: space-between; }
+  .field-head > label { margin-bottom: 5px; }
+  #improve { padding: 3px 8px; font-size: 11px; margin-bottom: 4px; }
+  #improve[disabled] { opacity: .5; }
+
+  button {
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 12px; cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent-dim); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary {
+    background: var(--accent); border-color: var(--accent); color: #0d1220;
+    font-weight: 600; width: 100%; padding: 11px;
+  }
+  button.primary:hover:not(:disabled) { filter: brightness(1.08); }
+  button.ghost { background: transparent; }
+  button.small { padding: 5px 9px; font-size: 12px; }
+
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { min-width: 0; }
+
+  /* --- drop zone --------------------------------------------------------- */
+
+  .drop {
+    border: 1px dashed var(--line); border-radius: var(--radius);
+    padding: 18px 12px; text-align: center; color: var(--dim);
+    cursor: pointer; transition: border-color .12s, background .12s;
+  }
+  .drop:hover, .drop.over { border-color: var(--accent); background: rgba(110,168,254,.05); }
+  .drop.over { background: rgba(110,168,254,.08); }
+  .drop.has-image { padding: 8px; }
+  .drop img { max-width: 100%; max-height: 150px; border-radius: 6px; display: block; margin: 0 auto; }
+  .drop .meta { margin-top: 7px; font-size: 11px; color: var(--faint); }
+
+  /* --- sliders ----------------------------------------------------------- */
+
+  .param { margin-bottom: 10px; }
+  .param .top { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); }
+  .param .top b { color: var(--text); font-weight: 600; }
+  input[type=range] { width: 100%; accent-color: var(--accent); margin-top: 3px; }
+
+  /* --- result ------------------------------------------------------------ */
+
+  .stage {
+    flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center;
+    padding: 18px; position: relative; overflow: auto;
+  }
+  .stage img { max-width: 100%; max-height: 100%; border-radius: var(--radius); box-shadow: 0 8px 28px rgba(0,0,0,.45); }
+  .empty { color: var(--faint); text-align: center; max-width: 440px; }
+  .empty h2 { color: var(--dim); font-size: 15px; font-weight: 600; margin: 0 0 8px; }
+  .empty p { margin: 0 0 10px; }
+  .empty code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+  .results { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center; }
+  /* With several results, one is "selected" and Save as / Show file act on it.
+     Without this the second image of a two-image run was unreachable. */
+  .results img { cursor: pointer; outline: 2px solid transparent; transition: outline-color .12s; }
+  .results.multi img.sel { outline-color: var(--accent); }
+  .results.multi img:not(.sel) { opacity: .72; }
+  .results.multi img:hover { opacity: 1; }
+
+  .busy { text-align: center; color: var(--dim); }
+  .spinner {
+    width: 26px; height: 26px; margin: 0 auto 12px;
+    border: 2px solid var(--line); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error {
+    max-width: 560px; padding: 14px 16px; border-radius: var(--radius);
+    background: rgba(245,138,138,.08); border: 1px solid rgba(245,138,138,.3);
+    color: var(--bad); white-space: pre-wrap;
+  }
+
+  .bar {
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px 14px; border-top: 1px solid var(--line); background: var(--panel);
+    min-height: 46px;
+  }
+  .bar .spacer { flex: 1; }
+  .bar .cost { color: var(--faint); font-size: 12px; }
+
+  /* --- history ----------------------------------------------------------- */
+
+  .strip {
+    display: flex; gap: 8px; padding: 10px 14px; overflow-x: auto;
+    border-top: 1px solid var(--line); background: var(--bg); min-height: 74px;
+  }
+  .strip .none { color: var(--faint); font-size: 12px; align-self: center; }
+  .thumb {
+    width: 54px; height: 54px; border-radius: 6px; border: 1px solid var(--line);
+    object-fit: cover; cursor: pointer; flex: none; background: var(--panel-2);
+  }
+  .thumb:hover { border-color: var(--accent); }
+
+  /* --- modal ------------------------------------------------------------- */
+
+  .modal {
+    position: fixed; inset: 0; background: rgba(8,9,14,.72);
+    display: none; align-items: center; justify-content: center; padding: 24px; z-index: 20;
+  }
+  .modal.open { display: flex; }
+  .sheet {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; padding: 20px;
+  }
+  .sheet h2 { margin: 0 0 4px; font-size: 16px; }
+  .sheet .lede { color: var(--faint); margin: 0 0 18px; font-size: 12px; }
+  .prov { border: 1px solid var(--line); border-radius: var(--radius); padding: 13px; margin-bottom: 12px; }
+  .prov h3 { margin: 0 0 3px; font-size: 13px; display: flex; align-items: center; gap: 7px; }
+  .prov p { margin: 0 0 10px; color: var(--faint); font-size: 12px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); flex: none; }
+  .dot.on { background: var(--good); }
+  a { color: var(--accent); cursor: pointer; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .status { font-size: 12px; margin-top: 7px; min-height: 16px; }
+  .status.ok { color: var(--good); }
+  .status.bad { color: var(--bad); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="side-scroll">
+
+      <div class="field">
+        <label for="provider">Backend</label>
+        <select id="provider"></select>
+        <div class="hint" id="providerHint"></div>
+      </div>
+
+      <div class="field">
+        <label for="model">Model</label>
+        <select id="model"></select>
+        <div class="hint" id="modelHint"></div>
+      </div>
+
+      <div class="field" id="imageField">
+        <label>Input image</label>
+        <div class="drop" id="drop">
+          <div id="dropEmpty">
+            Drop an image, or click to choose<br />
+            <span style="color:var(--faint);font-size:11px">PNG, JPG or WebP — a SketchUp export works well</span>
+          </div>
+          <div id="dropFilled" hidden>
+            <img id="preview" alt="Input preview" />
+            <div class="meta" id="imageMeta"></div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:7px">
+          <button class="small ghost" id="clearImage" hidden>Remove</button>
+        </div>
+        <div class="hint" id="imageHint"></div>
+      </div>
+
+      <div class="field">
+        <div class="field-head">
+          <label for="prompt">Prompt</label>
+          <button class="small ghost" id="improve" title="Rewrite this with a free model — costs nothing">
+            ✦ Improve
+          </button>
+        </div>
+        <textarea id="prompt" placeholder="a single-storey farmhouse with white plastered walls and a corrugated steel roof"></textarea>
+        <div class="hint" id="improveHint"></div>
+        <div class="row" id="improveUndoRow" hidden>
+          <button class="small ghost" id="improveUndo">Undo improve</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="preset">Style preset</label>
+        <select id="preset"></select>
+        <div class="hint" id="presetHint"></div>
+      </div>
+
+      <div class="field" id="params"></div>
+
+    </div>
+
+    <div style="padding:12px 14px;border-top:1px solid var(--line)">
+      <button class="primary" id="go">Generate</button>
+      <button class="ghost" id="stop" style="width:100%;margin-top:7px" hidden>Cancel</button>
+    </div>
+  </aside>
+
+  <section class="main">
+    <header>
+      <div>
+        <div class="title">Beeld</div>
+        <div class="sub" id="headerSub">Image generation, whichever backend you feel like</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="small" id="openRenders">Open folder</button>
+      <button class="small" id="openSettings">Settings</button>
+    </header>
+
+    <div class="stage" id="stage">
+      <div class="empty" id="empty">
+        <h2>Nothing generated yet</h2>
+        <p>Pick a backend, paste its key in <b>Settings</b>, then describe what you want.</p>
+        <p style="color:var(--faint)">
+          For the SketchUp workflow: choose <b>Replicate → FLUX Depth</b>, drop your
+          export in as the input image, and describe the materials and light.
+        </p>
+      </div>
+    </div>
+
+    <div class="bar">
+      <span class="cost" id="stageText"></span>
+      <div class="spacer"></div>
+      <span class="cost" id="costText"></span>
+      <button class="small" id="saveAs" hidden>Save as…</button>
+      <button class="small" id="saveAll" hidden>Save all…</button>
+      <button class="small" id="reveal" hidden>Show file</button>
+    </div>
+
+    <div class="strip" id="strip"><span class="none">No history yet.</span></div>
+  </section>
+</div>
+
+<div class="modal" id="settings">
+  <div class="sheet">
+    <h2>Settings</h2>
+    <p class="lede" id="keyStorageNote"></p>
+
+    <div id="provList"></div>
+
+    <div class="field">
+      <label for="saveDirNote">Renders are saved to</label>
+      <div class="hint" id="saveDirNote"></div>
+    </div>
+
+    <div class="field">
+      <label for="assistModel">Prompt help runs on</label>
+      <select id="assistModel"></select>
+      <div class="hint">
+        OpenRouter's free tier. These models cost nothing but still need an
+        OpenRouter key. Only the ones marked "sees images" can read your input
+        image; the rest just expand what you typed.
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="maxEdge">Downscale input images to (long edge, px)</label>
+      <input type="text" id="maxEdge" />
+      <div class="hint">
+        Inputs are uploaded as base64, which inflates them by about a third.
+        These models cap out near 1440px anyway, so larger costs time and buys nothing.
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:18px">
+      <button id="closeSettings">Done</button>
+      <div class="spacer" style="flex:1"></div>
+      <button class="ghost small" id="clearHistory">Clear history</button>
+    </div>
+  </div>
+</div>
+
+<script src="panel.js"></script>
+</body>
+</html>
