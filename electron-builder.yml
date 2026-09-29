@@ -13,11 +13,22 @@ files:
   - "!tools/**"
   # The skeleton is a sibling project kept in this repo, not part of the app.
   - "!foundation/**"
+  - "!mcp/**"
 
-# Nothing native to unpack: every backend is reached over HTTP, and the only
-# image processing is Electron's own nativeImage. That is the whole reason this
-# app installs cleanly where Vloei needed koffi and ONNX carve-outs.
+# sharp (pixelate / cut-out / spritesheets) is the one native module. Its .node
+# binaries cannot load from inside an asar, so they are unpacked next to it.
 asar: true
+asarUnpack:
+  - "**/node_modules/sharp/**/*"
+  - "**/node_modules/@img/**/*"
+
+# Auto-update feed. `npm run release` (needs GH_TOKEN) uploads the installer and
+# latest.yml to a GitHub Release; installed copies check it on launch. The repo
+# must be public, or the app would need a token baked in.
+publish:
+  provider: github
+  owner: JannieDuiwel
+  repo: Beeld
 
 win:
   target:

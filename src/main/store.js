@@ -67,6 +67,10 @@ const DEFAULTS = {
   historyEnabled: true,
   historyMax: HISTORY_CAP,
 
+  // --- game assets ---------------------------------------------------------
+  godotProject: '',              // folder containing project.godot
+  godotSubdir: 'assets',
+
   // --- interface -----------------------------------------------------------
   theme: 'dark',
   confirmOverSpend: 0.5,         // warn before a single run priced above this (USD); 0 disables

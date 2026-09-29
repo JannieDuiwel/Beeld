@@ -20,10 +20,13 @@ const secrets = require('./secrets');
 const images = require('./images');
 const providers = require('./providers');
 const openrouter = require('./providers/openrouter');
+const assetops = require('./assetops');
+const updater = require('./updater');
 
 const DEV = process.argv.includes('--dev');
 
 let win = null;
+let updates = null;
 let running = null;      // { controller } while a generation is in flight
 
 // --- window ----------------------------------------------------------------
@@ -90,6 +93,11 @@ function createWindow() {
  */
 function rendersDir() {
   return store.settings().saveDir || path.join(app.getPath('pictures'), 'Beeld');
+}
+
+/** Derived game assets (pixelated, cut out, sheets) live beside the renders. */
+function assetsDir() {
+  return path.join(app.getPath('pictures'), 'Beeld', 'Assets');
 }
 
 /** Where renders used to go, kept only so they can be moved out. */
@@ -161,6 +169,11 @@ function state() {
     keysPersist: secrets.persistent(),
     rendersDir: rendersDir(),
     busy: Boolean(running),
+    version: app.getVersion(),
+    update: updates ? updates.status() : null,
+    godotProject: store.settings().godotProject,
+    godotSubdir: store.settings().godotSubdir,
+    assetsDir: assetsDir(),
   };
 }
 
@@ -387,6 +400,44 @@ function describe(e) {
   return msg;
 }
 
+// --- IPC: game assets ------------------------------------------------------
+
+ipcMain.handle(C.ASSET_OP, async (_e, { op, source, sources, options }) => {
+  try {
+    return await assetops.run(op, { source, sources, options }, assetsDir());
+  } catch (e) {
+    return { ok: false, error: describe(e) };
+  }
+});
+
+ipcMain.handle(C.PICK_GODOT, async () => {
+  const res = await dialog.showOpenDialog(win, {
+    title: 'Choose your Godot project folder (the one with project.godot)',
+    properties: ['openDirectory'],
+    defaultPath: store.settings().godotProject || undefined,
+  });
+  if (res.canceled || !res.filePaths.length) return { ok: false, cancelled: true };
+  const dir = res.filePaths[0];
+  if (!assetops.isGodotProject(dir)) return { ok: false, error: 'No project.godot in that folder.' };
+  store.setSettings({ godotProject: dir });
+  return { ok: true, project: dir };
+});
+
+ipcMain.handle(C.EXPORT_GODOT, (_e, { sources, subdir }) => {
+  try {
+    const s = store.settings();
+    if (!s.godotProject) throw new Error('Choose a Godot project first.');
+    const files = sources.map((src) => assetops.materialize(src, assetsDir()));
+    if (subdir && subdir !== s.godotSubdir) store.setSettings({ godotSubdir: subdir });
+    return { ok: true, paths: assetops.exportToGodot(files, s.godotProject, subdir || s.godotSubdir) };
+  } catch (e) {
+    return { ok: false, error: describe(e) };
+  }
+});
+
+ipcMain.handle(C.UPDATE_CHECK, () => (updates ? updates.check() : null));
+ipcMain.handle(C.UPDATE_INSTALL, () => { updates?.install(); return true; });
+
 // --- IPC: history and files ------------------------------------------------
 
 ipcMain.handle(C.GET_HISTORY, (_e, limit) => store.getHistory(limit));
@@ -477,6 +528,24 @@ ipcMain.handle(C.OPEN_EXTERNAL, (_e, url) => {
   return true;
 });
 
+// --- updates -----------------------------------------------------------------
+
+function startUpdater() {
+  let autoUpdater = null;
+  if (app.isPackaged) {
+    try { ({ autoUpdater } = require('electron-updater')); } catch { /* dev tree without the dep */ }
+  }
+  updates = updater.init({
+    autoUpdater: autoUpdater || new (require('events'))(),
+    packaged: Boolean(autoUpdater),
+    version: app.getVersion(),
+    send: (status) => send(C.UPDATE_STATUS, status),
+    isBusy: () => Boolean(running),
+  });
+  // Renderer may not be loaded yet; the banner also polls state() on load.
+  updates.check();
+}
+
 // --- lifecycle -------------------------------------------------------------
 
 // A second launch should focus the existing window, not start a rival copy that
@@ -498,6 +567,7 @@ if (!app.requestSingleInstanceLock()) {
     images.init(nativeImage);
     migrateRenders();
     createWindow();
+    startUpdater();
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();

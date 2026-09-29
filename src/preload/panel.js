@@ -40,6 +40,14 @@ contextBridge.exposeInMainWorld('beeld', {
   reveal: (file) => ipcRenderer.invoke(C.REVEAL, file),
   openExternal: (url) => ipcRenderer.invoke(C.OPEN_EXTERNAL, url),
 
+  assetOp: (op, payload) => ipcRenderer.invoke(C.ASSET_OP, { op, ...payload }),
+  pickGodot: () => ipcRenderer.invoke(C.PICK_GODOT),
+  exportGodot: (sources, subdir) => ipcRenderer.invoke(C.EXPORT_GODOT, { sources, subdir }),
+
+  checkUpdate: () => ipcRenderer.invoke(C.UPDATE_CHECK),
+  installUpdate: () => ipcRenderer.invoke(C.UPDATE_INSTALL),
+  onUpdate: (fn) => ipcRenderer.on(C.UPDATE_STATUS, (_e, d) => fn(d)),
+
   onStage: (fn) => ipcRenderer.on(C.STAGE, (_e, d) => fn(d)),
   onError: (fn) => ipcRenderer.on(C.ERROR, (_e, d) => fn(d)),
 });

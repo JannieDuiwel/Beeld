@@ -65,6 +65,37 @@ const PRESETS = [
       'clean vector illustration, flat colour, bold shapes, minimal detail',
     hint: 'Flat graphic style.',
   },
+  {
+    id: 'game-pixel',
+    label: 'Game — pixel art',
+    suffix:
+      'pixel art style, crisp hard edges, limited colour palette, no anti-aliasing, ' +
+      'no gradients, no blur, flat shading',
+    hint: 'Generate, then use Tools > Pixelate to snap it to a true low-res grid.',
+  },
+  {
+    id: 'game-sprite',
+    label: 'Game — sprite (cut-out ready)',
+    suffix:
+      'single game sprite, centred, full subject visible, on a plain flat solid magenta ' +
+      '(#FF00FF) background, no shadow on background, no text',
+    hint: 'Flat magenta backdrop so Tools > Cut out can make it transparent.',
+  },
+  {
+    id: 'game-icon',
+    label: 'Game — icon',
+    suffix:
+      'clean game UI icon, centred, bold readable silhouette, on a plain flat solid ' +
+      'magenta (#FF00FF) background',
+    hint: 'Item and ability icons. Cut out, then pixelate small.',
+  },
+  {
+    id: 'game-tile',
+    label: 'Game — seamless tile',
+    suffix:
+      'seamless tileable texture, top-down, flat even lighting, no borders, no vignette',
+    hint: 'Ground and wall textures. Check the edges line up before using.',
+  },
 ];
 
 /** Joins a user prompt and a preset without doubling punctuation. */

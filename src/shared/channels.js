@@ -33,7 +33,15 @@ module.exports = {
   REVEAL: 'panel:reveal',
   OPEN_EXTERNAL: 'panel:open-external',
 
+  ASSET_OP: 'panel:asset-op',
+  PICK_GODOT: 'panel:pick-godot',
+  EXPORT_GODOT: 'panel:export-godot',
+
+  UPDATE_CHECK: 'panel:update-check',
+  UPDATE_INSTALL: 'panel:update-install',
+
   // main -> panel (send)
+  UPDATE_STATUS: 'panel:update-status',
   STAGE: 'panel:stage',        // progress text for the current run
   RESULT: 'panel:result',      // a finished generation
   ERROR: 'panel:error',

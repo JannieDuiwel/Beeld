@@ -247,6 +247,17 @@ function showResult(res) {
     const node = document.createElement('img');
     node.src = img.dataUri;
     node.alt = res.prompt;
+    // Small pixel-art results would otherwise render as a speck. Scale them up
+    // in whole steps with nearest-neighbour so the pixels stay crisp.
+    node.addEventListener('load', () => {
+      const longest = Math.max(node.naturalWidth, node.naturalHeight);
+      if (longest && longest < 400) {
+        const k = Math.max(1, Math.floor(400 / longest));
+        node.classList.add('px');
+        node.style.width = `${node.naturalWidth * k}px`;
+        node.style.maxWidth = 'none';
+      }
+    });
     if (i === 0) node.classList.add('sel');
     // With more than one result, Save as / Show file need to know WHICH one.
     // Previously they always acted on images[0], so a second image could be

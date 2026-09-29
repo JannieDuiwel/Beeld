@@ -70,7 +70,7 @@
     color: var(--faint);
   }
 
-  select, input[type=text], input[type=password], textarea {
+  select, input[type=text], input[type=number], input[type=password], textarea {
     width: 100%; padding: 8px 10px;
     background: var(--panel-2); border: 1px solid var(--line);
     border-radius: 8px; outline: none;
@@ -204,6 +204,31 @@
   .status { font-size: 12px; margin-top: 7px; min-height: 16px; }
   .status.ok { color: var(--good); }
   .status.bad { color: var(--bad); white-space: pre-wrap; }
+
+  /* --- update banner ------------------------------------------------------ */
+  .update {
+    display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+    background: rgba(110,168,254,.12); border-bottom: 1px solid var(--accent-dim);
+    color: var(--text); font-size: 12px;
+  }
+  .update .spacer { flex: 1; }
+
+  /* --- game asset tools --------------------------------------------------- */
+  .tools { border-top: 1px solid var(--line); background: var(--panel); }
+  .tabs { display: flex; gap: 4px; padding: 8px 14px 0; align-items: center; }
+  .tabs .lbl { color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; margin-right: 6px; }
+  .tab { border-radius: 8px 8px 0 0; border-bottom: none; padding: 5px 11px; font-size: 12px; background: transparent; }
+  .tab.on { background: var(--panel-2); border-color: var(--accent-dim); color: var(--accent); }
+  .tabbody { background: var(--panel-2); padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; border-top: 1px solid var(--line); }
+  .tabbody label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--faint); margin-bottom: 3px; }
+  .tabbody input[type=number], .tabbody input[type=text] { width: 76px; padding: 5px 8px; }
+  .tabbody input.wide { width: 150px; }
+  .tabbody .chk { display: flex; align-items: center; gap: 6px; padding-bottom: 6px; color: var(--dim); }
+  .tabbody .note { flex-basis: 100%; color: var(--faint); font-size: 12px; margin: 0; }
+  .tabbody .note.good { color: var(--good); } .tabbody .note.bad { color: var(--bad); white-space: pre-wrap; }
+  .tray { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+  .tray img { width: 34px; height: 34px; object-fit: contain; image-rendering: pixelated; background: var(--bg); border-radius: 4px; border: 1px solid var(--line); }
+  .results img.px { image-rendering: pixelated; }
 </style>
 </head>
 <body>
@@ -272,6 +297,12 @@
   </aside>
 
   <section class="main">
+    <div class="update" id="updateBar" hidden>
+      <span id="updateText"></span>
+      <div class="spacer"></div>
+      <button class="small" id="updateNow" hidden>Restart now</button>
+    </div>
+
     <header>
       <div>
         <div class="title">Beeld</div>
@@ -300,6 +331,52 @@
       <button class="small" id="saveAs" hidden>Save as…</button>
       <button class="small" id="saveAll" hidden>Save all…</button>
       <button class="small" id="reveal" hidden>Show file</button>
+    </div>
+
+    <div class="tools" id="tools">
+      <div class="tabs">
+        <span class="lbl">Game tools</span>
+        <button class="tab on" data-tab="pixel">Pixelate</button>
+        <button class="tab" data-tab="cut">Cut out</button>
+        <button class="tab" data-tab="sheet">Spritesheet <span id="trayCount"></span></button>
+        <button class="tab" data-tab="godot">Godot</button>
+      </div>
+
+      <div class="tabbody" data-body="pixel">
+        <div><label>Width px</label><input type="number" id="pxWidth" value="32" min="4" max="512" /></div>
+        <div><label>Colours</label><input type="number" id="pxColors" value="16" min="2" max="64" /></div>
+        <div><label>Preview ×</label><input type="number" id="pxScale" value="1" min="1" max="32" /></div>
+        <label class="chk"><input type="checkbox" id="pxDither" /> Dither</label>
+        <button class="small" id="runPixel">Pixelate</button>
+        <p class="note">Snaps the shown image to a true low-res grid. Leave × at 1 for the game-ready file.</p>
+      </div>
+
+      <div class="tabbody" data-body="cut" hidden>
+        <div><label>Tolerance</label><input type="number" id="cutTol" value="40" min="0" max="255" /></div>
+        <label class="chk"><input type="checkbox" id="cutTrim" checked /> Trim empty edges</label>
+        <button class="small" id="runCut">Remove background</button>
+        <p class="note">Flood-fills the backdrop from the edges. Works best on a flat colour — use the “Game — sprite” preset.</p>
+      </div>
+
+      <div class="tabbody" data-body="sheet" hidden>
+        <div class="tray" id="tray"></div>
+        <button class="small" id="trayAdd">Add shown image</button>
+        <button class="small ghost" id="trayClear">Clear</button>
+        <div><label>Columns</label><input type="number" id="sheetCols" placeholder="auto" min="1" /></div>
+        <div><label>Cell W×H</label><input type="text" id="sheetCell" placeholder="auto" /></div>
+        <button class="small" id="runSheet">Build sheet</button>
+        <p class="note">Writes a PNG plus a .json with hframes / vframes for Godot's Sprite2D.</p>
+      </div>
+
+      <div class="tabbody" data-body="godot" hidden>
+        <div><label>Godot project</label><input type="text" class="wide" id="godotPath" readonly placeholder="not chosen" style="width:280px" /></div>
+        <button class="small" id="godotPick">Choose…</button>
+        <div><label>Folder in project</label><input type="text" id="godotSub" value="assets" /></div>
+        <button class="small" id="godotExport">Export shown image</button>
+        <button class="small" id="godotExportTray">Export tray</button>
+        <p class="note" id="godotNote">Copies into your project and gives you the res:// path. For pixel art set Project Settings → Rendering → Textures → Default Texture Filter = Nearest.</p>
+      </div>
+      <p class="note" id="toolNote" style="margin:0;padding:0 14px 8px;background:var(--panel-2);font-size:12px;color:var(--faint)"></p>
     </div>
 
     <div class="strip" id="strip"><span class="none">No history yet.</span></div>
@@ -337,6 +414,15 @@
       </div>
     </div>
 
+    <div class="field">
+      <label>Version</label>
+      <div class="row">
+        <span id="versionText" class="hint" style="margin:0"></span>
+        <button class="small" id="checkUpdate">Check for updates</button>
+      </div>
+      <div class="hint" id="updateHint"></div>
+    </div>
+
     <div class="row" style="margin-top:18px">
       <button id="closeSettings">Done</button>
       <div class="spacer" style="flex:1"></div>
@@ -346,5 +432,6 @@
 </div>
 
 <script src="panel.js"></script>
+<script src="tools.js"></script>
 </body>
 </html>

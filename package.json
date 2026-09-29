@@ -1,7 +1,7 @@
 {
   "name": "beeld",
   "productName": "Beeld",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Image generation and editing for Windows. Drop an image, describe what you want, and pick whichever backend you feel like paying for - or none at all.",
   "main": "src/main/main.js",
   "author": "Jan-Herman Schlechter",
@@ -14,11 +14,16 @@
     "check-models": "node tools/check-models.js",
     "postinstall": "node tools/make-icons.js",
     "build": "npm run icons && electron-builder --win --x64",
-    "test": "node test/catalogue.test.js && node test/store.test.js && node test/providers.test.js"
+    "test": "node test/catalogue.test.js && node test/store.test.js && node test/providers.test.js && node test/assets.test.js && node test/updater.test.js",
+    "release": "npm run icons && electron-builder --win --x64 --publish always",
+    "mcp": "node mcp/server.js"
   },
   "devDependencies": {
     "electron": "^44.3.0",
     "electron-builder": "^26.15.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "sharp": "^0.35.5"
+  }
 }
