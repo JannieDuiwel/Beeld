@@ -1,7 +1,7 @@
 {
   "name": "beeld",
   "productName": "Beeld",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Image generation and editing for Windows. Drop an image, describe what you want, and pick whichever backend you feel like paying for - or none at all.",
   "main": "src/main/main.js",
   "author": "Jan-Herman Schlechter",

@@ -179,7 +179,8 @@
     width: 54px; height: 54px; border-radius: 6px; border: 1px solid var(--line);
     object-fit: cover; cursor: pointer; flex: none; background: var(--panel-2);
   }
-  .thumb:hover { border-color: var(--accent); }
+  .thumb:hover, .thumb.sel { border-color: var(--accent); }
+  .thumb.tool { border-style: dashed; }
 
   /* --- modal ------------------------------------------------------------- */
 
@@ -336,6 +337,9 @@
     <div class="tools" id="tools">
       <div class="tabs">
         <span class="lbl">Game tools</span>
+        <button class="small" id="openForTools" title="Choose any image file to work on">Open image…</button>
+        <button class="small" id="useInput" title="Use the input image from the sidebar">Use input</button>
+        <span style="width:8px"></span>
         <button class="tab on" data-tab="pixel">Pixelate</button>
         <button class="tab" data-tab="cut">Cut out</button>
         <button class="tab" data-tab="sheet">Spritesheet <span id="trayCount"></span></button>

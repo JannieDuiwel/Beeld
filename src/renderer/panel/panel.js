@@ -245,7 +245,7 @@ function showResult(res) {
 
   res.images.forEach((img, i) => {
     const node = document.createElement('img');
-    node.src = img.dataUri;
+    node.src = imgSrc(img);
     node.alt = res.prompt;
     // Small pixel-art results would otherwise render as a speck. Scale them up
     // in whole steps with nearest-neighbour so the pixels stay crisp.
@@ -290,6 +290,11 @@ function updateSaveButtons() {
   ui.reveal.hidden = !result?.images?.[selected]?.path;
 }
 
+/** History items and opened files carry a path but no pixels; show them from disk. */
+function imgSrc(img) {
+  return img.dataUri || `file:///${String(img.path).replace(/\\/g, '/')}`;
+}
+
 function escape(s) {
   const d = document.createElement('div');
   d.textContent = String(s);
@@ -306,14 +311,21 @@ async function renderHistory() {
   for (const h of list) {
     const img = document.createElement('img');
     img.className = 'thumb';
-    img.title = `${h.prompt}\n${h.model}`;
+    img.title = `${h.prompt}\n${h.model}\n(click to use, double-click to show file)`;
+    if (h.provider === 'tools') img.classList.add('tool');
     // History holds paths, not pixels, so a deleted file simply shows blank
     // rather than bloating history.json with base64.
     if (h.paths?.[0]) img.src = `file:///${h.paths[0].replace(/\\/g, '/')}`;
+    // Click loads it onto the stage, where the Game tools act on it - so any
+    // earlier render, or a tool's output, can be picked up again. Double-click
+    // shows the file in Explorer.
     img.addEventListener('click', () => {
-      ui.prompt.value = h.prompt;
-      if (h.paths?.[0]) api.reveal(h.paths[0]);
+      if (!h.paths?.[0]) return;
+      if (h.provider !== 'tools') ui.prompt.value = h.prompt;
+      showResult({ prompt: h.prompt, images: [{ path: h.paths[0] }], meta: h.meta || {} });
+      ui.strip.querySelectorAll('.thumb').forEach((t) => t.classList.toggle('sel', t === img));
     });
+    img.addEventListener('dblclick', () => { if (h.paths?.[0]) api.reveal(h.paths[0]); });
     ui.strip.appendChild(img);
   }
 }
@@ -633,12 +645,12 @@ ui.saveAs.addEventListener('click', async () => {
   const img = result?.images?.[selected];
   if (!img) return;
   const n = result.images.length > 1 ? `-${selected + 1}` : '';
-  await api.saveAs(img.dataUri, `render${n}.png`);
+  await api.saveAs(img.dataUri, `render${n}.png`, img.path);
 });
 
 ui.saveAll.addEventListener('click', async () => {
   if (!result?.images?.length) return;
-  const written = await api.saveAll(result.images.map((i) => i.dataUri), result.prompt);
+  const written = await api.saveAll(result.images.filter((i) => i.dataUri).map((i) => i.dataUri), result.prompt);
   if (written?.length) {
     ui.stageText.textContent = `Saved ${written.length} images.`;
   }

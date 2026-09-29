@@ -35,7 +35,7 @@ contextBridge.exposeInMainWorld('beeld', {
   deleteHistory: (id) => ipcRenderer.invoke(C.DELETE_HISTORY, id),
   clearHistory: () => ipcRenderer.invoke(C.CLEAR_HISTORY),
 
-  saveAs: (dataUri, suggestedName) => ipcRenderer.invoke(C.SAVE_AS, { dataUri, suggestedName }),
+  saveAs: (dataUri, suggestedName, file) => ipcRenderer.invoke(C.SAVE_AS, { dataUri, suggestedName, file }),
   saveAll: (images, stem) => ipcRenderer.invoke(C.SAVE_ALL, { images, stem }),
   reveal: (file) => ipcRenderer.invoke(C.REVEAL, file),
   openExternal: (url) => ipcRenderer.invoke(C.OPEN_EXTERNAL, url),

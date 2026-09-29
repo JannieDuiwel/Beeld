@@ -37,6 +37,23 @@
     return false;
   }
 
+  // Open any image file (the original you started from, an old render, a sprite
+  // from elsewhere) as the image the tools work on. Path-only items are read
+  // from disk in main at full resolution.
+  $('openForTools').addEventListener('click', async () => {
+    const r = await api.pickImage();
+    if (!r?.ok) { if (r && r.error) note(r.error, 'bad'); return; }
+    showResult({ prompt: r.name, images: [{ path: r.path }], meta: {} });
+    note(`Loaded ${r.name} (${r.originalWidth || r.width}x${r.originalHeight || r.height}).`, 'good');
+  });
+
+  // The input image already in the sidebar.
+  $('useInput').addEventListener('click', () => {
+    if (!input?.path) { note('No input image in the sidebar.', 'bad'); return; }
+    showResult({ prompt: input.name, images: [{ path: input.path }], meta: {} });
+    note(`Loaded ${input.name}.`, 'good');
+  });
+
   $('runPixel').addEventListener('click', () => {
     if (!needImage()) return;
     run('pixelate', {
@@ -59,7 +76,7 @@
     box.innerHTML = '';
     tray.forEach((f, i) => {
       const img = document.createElement('img');
-      img.src = f.dataUri;
+      img.src = imgSrc(f);
       img.title = 'Click to remove';
       img.addEventListener('click', () => { tray.splice(i, 1); renderTray(); });
       box.appendChild(img);

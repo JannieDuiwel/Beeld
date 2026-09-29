@@ -402,9 +402,14 @@ function describe(e) {
 
 // --- IPC: game assets ------------------------------------------------------
 
+const LABELS = { pixelate: 'Pixelated', cutout: 'Cut out', sheet: 'Spritesheet' };
+
 ipcMain.handle(C.ASSET_OP, async (_e, { op, source, sources, options }) => {
   try {
-    return await assetops.run(op, { source, sources, options }, assetsDir());
+    const res = await assetops.run(op, { source, sources, options }, assetsDir());
+    // Tool outputs join the history strip so they can be picked up again later.
+    store.addHistory({ prompt: LABELS[op] || op, provider: 'tools', model: op, paths: [res.path], inputPath: source?.path || null, meta: {} });
+    return res;
   } catch (e) {
     return { ok: false, error: describe(e) };
   }
@@ -444,15 +449,16 @@ ipcMain.handle(C.GET_HISTORY, (_e, limit) => store.getHistory(limit));
 ipcMain.handle(C.DELETE_HISTORY, (_e, id) => store.deleteHistory(id));
 ipcMain.handle(C.CLEAR_HISTORY, () => store.clearHistory());
 
-ipcMain.handle(C.SAVE_AS, async (_e, { dataUri, suggestedName }) => {
+ipcMain.handle(C.SAVE_AS, async (_e, { dataUri, suggestedName, file }) => {
   const res = await dialog.showSaveDialog(win, {
     title: 'Save image',
     defaultPath: path.join(app.getPath('pictures'), suggestedName || 'render.png'),
     filters: [{ name: 'PNG', extensions: ['png'] }],
   });
   if (res.canceled || !res.filePath) return null;
-  const b64 = String(dataUri).split(',')[1] || '';
-  fs.writeFileSync(res.filePath, Buffer.from(b64, 'base64'));
+  // Path-only items (opened from history or disk) have no pixels in the renderer.
+  const bytes = dataUri ? Buffer.from(String(dataUri).split(',')[1] || '', 'base64') : fs.readFileSync(file);
+  fs.writeFileSync(res.filePath, bytes);
   return res.filePath;
 });
 
