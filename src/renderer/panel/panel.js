@@ -81,7 +81,7 @@ function renderImproveAvailability() {
     : 'Needs an OpenRouter key (Settings). Free, but still needs a key.';
   if (!hasKey) {
     ui.improveHint.textContent = 'Improve needs an OpenRouter key — free to use.';
-    ui.improveHint.className = 'hint';
+    ui.improveHint.className = 'field__hint';
   } else if (/needs an OpenRouter key/.test(ui.improveHint.textContent)) {
     ui.improveHint.textContent = '';
   }
@@ -106,7 +106,7 @@ function renderModelDetail() {
       : kind === 'edit'
         ? 'Optional. Used as the subject — write the prompt as an instruction.'
         : '';
-  ui.imageHint.className = 'hint';
+  ui.imageHint.className = 'field__hint';
 
   renderParams();
   renderCost();
@@ -117,9 +117,9 @@ function renderParams() {
   ui.params.innerHTML = '';
   if (!m?.controls?.length) return;
 
-  const label = document.createElement('label');
+  const label = document.createElement('span');
+  label.className = 'field__label';
   label.textContent = 'Settings';
-  label.style.cssText = 'display:block;margin-bottom:5px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--faint)';
   ui.params.appendChild(label);
 
   for (const name of m.controls) {
@@ -134,19 +134,23 @@ function renderParams() {
     const value = Math.min(range[1], Math.max(range[0], Number(raw)));
 
     const wrap = document.createElement('div');
-    wrap.className = 'param';
+    wrap.className = 'field';
     wrap.innerHTML =
-      `<div class="top"><span>${labelFor(name)}</span><b data-out>${value}</b></div>`;
+      `<div class="field__head"><span class="field__label">${labelFor(name)}</span><span class="field__value" data-out>${value}</span></div>`;
 
     const slider = document.createElement('input');
     slider.type = 'range';
+    slider.className = 'range';
     slider.min = range[0];
     slider.max = range[1];
     slider.step = name === 'guidance' ? 0.5 : 1;
     slider.value = value;
+    // The kit draws the filled part of the track from --fill.
+    const fill = () => slider.style.setProperty('--fill', `${((slider.value - range[0]) / (range[1] - range[0])) * 100}%`);
+    fill();
 
     const out = wrap.querySelector('[data-out]');
-    slider.addEventListener('input', () => { out.textContent = slider.value; });
+    slider.addEventListener('input', () => { out.textContent = slider.value; fill(); });
     slider.addEventListener('change', () => {
       const params = { ...(state.settings.params || {}), [name]: Number(slider.value) };
       save({ params });
@@ -186,7 +190,7 @@ function renderImage() {
   ui.dropEmpty.hidden = has;
   ui.dropFilled.hidden = !has;
   ui.clearImage.hidden = !has;
-  ui.drop.classList.toggle('has-image', has);
+  ui.drop.classList.toggle('drop--loaded', has);
   if (!has) return;
 
   ui.preview.src = input.dataUri;
@@ -227,8 +231,9 @@ function showBusy(text) {
 
 function showError(msg) {
   const div = document.createElement('div');
-  div.className = 'error';
-  div.textContent = msg;
+  div.className = 'notice notice--err stage-error';
+  div.innerHTML = '<svg class="icon notice__icon"><use href="#i-alert"/></svg><div class="notice__body"></div>';
+  div.querySelector('.notice__body').textContent = msg;   // textContent: the message is not HTML
   showStage(div);
   ui.saveAs.hidden = true;
   ui.saveAll.hidden = true;
@@ -305,28 +310,33 @@ async function renderHistory() {
   const list = await api.getHistory(30);
   ui.strip.innerHTML = '';
   if (!list.length) {
-    ui.strip.innerHTML = '<span class="none">No history yet.</span>';
+    ui.strip.innerHTML = '<span class="strip-bar__empty">No history yet.</span>';
     return;
   }
   for (const h of list) {
+    const thumb = document.createElement('button');
+    thumb.type = 'button';
+    thumb.className = 'thumb';
+    thumb.setAttribute('aria-selected', 'false');
+    thumb.title = `${h.prompt}\n${h.model}\n(click to use, double-click to show file)`;
+    if (h.provider === 'tools') thumb.classList.add('thumb--tool');
     const img = document.createElement('img');
-    img.className = 'thumb';
-    img.title = `${h.prompt}\n${h.model}\n(click to use, double-click to show file)`;
-    if (h.provider === 'tools') img.classList.add('tool');
+    img.alt = '';
+    thumb.appendChild(img);
     // History holds paths, not pixels, so a deleted file simply shows blank
     // rather than bloating history.json with base64.
     if (h.paths?.[0]) img.src = `file:///${h.paths[0].replace(/\\/g, '/')}`;
     // Click loads it onto the stage, where the Game tools act on it - so any
     // earlier render, or a tool's output, can be picked up again. Double-click
     // shows the file in Explorer.
-    img.addEventListener('click', () => {
+    thumb.addEventListener('click', () => {
       if (!h.paths?.[0]) return;
       if (h.provider !== 'tools') ui.prompt.value = h.prompt;
       showResult({ prompt: h.prompt, images: [{ path: h.paths[0] }], meta: h.meta || {} });
-      ui.strip.querySelectorAll('.thumb').forEach((t) => t.classList.toggle('sel', t === img));
+      ui.strip.querySelectorAll('.thumb').forEach((t) => t.setAttribute('aria-selected', String(t === thumb)));
     });
-    img.addEventListener('dblclick', () => { if (h.paths?.[0]) api.reveal(h.paths[0]); });
-    ui.strip.appendChild(img);
+    thumb.addEventListener('dblclick', () => { if (h.paths?.[0]) api.reveal(h.paths[0]); });
+    ui.strip.appendChild(thumb);
   }
 }
 
@@ -365,7 +375,7 @@ async function onProviderChange() {
 async function pickImage() {
   const res = await api.pickImage();
   if (!res) return;
-  if (!res.ok) { ui.imageHint.textContent = res.error; ui.imageHint.className = 'hint warn'; return; }
+  if (!res.ok) { ui.imageHint.textContent = res.error; ui.imageHint.className = 'field__hint field__hint--warn'; return; }
   input = res;
   renderImage();
 }
@@ -375,7 +385,7 @@ async function generate() {
   if (!m) { showError('Pick a model first.'); return; }
   if (m.kind === 'structure' && !input) {
     ui.imageHint.textContent = 'This model needs an input image to work from.';
-    ui.imageHint.className = 'hint warn';
+    ui.imageHint.className = 'field__hint field__hint--warn';
     return;
   }
   if (!ui.prompt.value.trim()) { ui.prompt.focus(); return; }
@@ -423,7 +433,7 @@ async function improvePrompt() {
   ui.improve.disabled = true;
   ui.improve.textContent = '✦ Thinking…';
   ui.improveHint.textContent = input ? 'Reading your image…' : 'Rewriting…';
-  ui.improveHint.className = 'hint';
+  ui.improveHint.className = 'field__hint';
 
   const before = ui.prompt.value;
   const res = await api.enhancePrompt(before, input?.path || null);
@@ -433,7 +443,7 @@ async function improvePrompt() {
 
   if (!res.ok) {
     ui.improveHint.textContent = res.error;
-    ui.improveHint.className = 'hint bad';
+    ui.improveHint.className = 'field__hint field__hint--err';
     return;
   }
 
@@ -445,7 +455,7 @@ async function improvePrompt() {
   const cost = Number(res.cost || 0);
   ui.improveHint.textContent =
     `Rewritten by ${res.model}${cost > 0 ? ` — $${cost.toFixed(4)}` : ' — free'}`;
-  ui.improveHint.className = 'hint good';
+  ui.improveHint.className = 'field__hint field__hint--ok';
 }
 
 function undoImprove() {
@@ -454,7 +464,7 @@ function undoImprove() {
   promptBeforeImprove = null;
   ui.improveUndoRow.hidden = true;
   ui.improveHint.textContent = '';
-  ui.improveHint.className = 'hint';
+  ui.improveHint.className = 'field__hint';
   save({ lastPrompt: ui.prompt.value });
 }
 
@@ -503,19 +513,20 @@ function renderSettings() {
 
     if (p.needsKey) {
       const row = document.createElement('div');
-      row.className = 'row';
+      row.className = 'prov-row';
       const field = document.createElement('input');
       field.type = 'password';
+      field.className = 'input';
       field.placeholder = has ? '•••••••• (saved)' : p.keyHint;
       row.appendChild(field);
 
       const saveBtn = document.createElement('button');
-      saveBtn.className = 'small';
+      saveBtn.className = 'btn btn--sm';
       saveBtn.textContent = 'Save';
       row.appendChild(saveBtn);
 
       const testBtn = document.createElement('button');
-      testBtn.className = 'small ghost';
+      testBtn.className = 'btn btn--sm btn--ghost';
       testBtn.textContent = 'Test';
       row.appendChild(testBtn);
 
@@ -526,7 +537,7 @@ function renderSettings() {
       box.appendChild(status);
 
       const link = document.createElement('div');
-      link.className = 'hint';
+      link.className = 'field__hint';
       link.innerHTML = `<a data-url="${p.keyUrl}">Get a key →</a>`;
       box.appendChild(link);
 
@@ -549,14 +560,15 @@ function renderSettings() {
     } else {
       // ComfyUI needs a URL rather than a key.
       const row = document.createElement('div');
-      row.className = 'row';
+      row.className = 'prov-row';
       const field = document.createElement('input');
       field.type = 'text';
+      field.className = 'input';
       field.value = state.settings.comfyUrl;
       row.appendChild(field);
 
       const testBtn = document.createElement('button');
-      testBtn.className = 'small ghost';
+      testBtn.className = 'btn btn--sm btn--ghost';
       testBtn.textContent = 'Test';
       row.appendChild(testBtn);
       box.appendChild(row);
@@ -609,9 +621,9 @@ ui.clearImage.addEventListener('click', (e) => {
 });
 
 ['dragenter', 'dragover'].forEach((ev) =>
-  ui.drop.addEventListener(ev, (e) => { e.preventDefault(); ui.drop.classList.add('over'); }));
+  ui.drop.addEventListener(ev, (e) => { e.preventDefault(); ui.drop.classList.add('is-dragover'); }));
 ['dragleave', 'drop'].forEach((ev) =>
-  ui.drop.addEventListener(ev, () => ui.drop.classList.remove('over')));
+  ui.drop.addEventListener(ev, () => ui.drop.classList.remove('is-dragover')));
 
 ui.drop.addEventListener('drop', async (e) => {
   e.preventDefault();
@@ -622,7 +634,7 @@ ui.drop.addEventListener('drop', async (e) => {
   const p = window.beeldPath?.(file) || file.path;
   if (!p) { ui.imageHint.textContent = 'Could not read that file — use the click-to-choose route.'; return; }
   const res = await api.loadImage(p);
-  if (!res.ok) { ui.imageHint.textContent = res.error; ui.imageHint.className = 'hint warn'; return; }
+  if (!res.ok) { ui.imageHint.textContent = res.error; ui.imageHint.className = 'field__hint field__hint--warn'; return; }
   input = res;
   renderImage();
 });

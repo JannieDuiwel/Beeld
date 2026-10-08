@@ -1,0 +1,118 @@
+/* Vendored from _ui-kit v1.1.0. Do not edit here: change _ui-kit and run sync. */
+/*
+ * Unified desktop kit: design tokens (Vloei, Beeld, Stroom). Dark UI only.
+ *
+ * Changes from the approved brief values (contrast / harmony):
+ *   --accent        #7C5CFF -> #7358F7   white label on the fill was 4.35:1 (fails AA);
+ *                                        now 4.70:1. Still reads as the same violet.
+ *   --accent-soft   rgba(124,92,255,.16) -> rgba(115,88,247,.16)  follows --accent.
+ *   Added (needed so components.css never hard-codes a colour or number):
+ *     --accent-hover, --accent-active, --accent-line, --on-accent,
+ *     --<semantic>-line, --err-soft-2, --scrim, --shadow-overlay,
+ *     --scroll-thumb(-hover), --opacity-disabled, spacing, size and focus tokens.
+ *   Every other brief value is unchanged.
+ *
+ * Contrast (alpha text composited over the surface, WCAG 2.x):
+ *   --text on --panel 15.6:1, --dim on --panel 6.2:1 (both AA).
+ *   --dimmer on --panel 3.1:1: disabled / decorative only, never body text.
+ *   --accent-text on --panel 6.7:1, --on-accent on --accent 4.7:1.
+ */
+:root {
+  /* Surfaces */
+  --bg: #0d0d12;
+  --panel: #14141b;
+  --panel-2: #191922;
+  --panel-3: #20202b; /* hover / raised */
+
+  /* Lines */
+  --stroke: rgba(255, 255, 255, 0.08);
+  --stroke-2: rgba(255, 255, 255, 0.14);
+
+  /* Text */
+  --text: rgba(255, 255, 255, 0.92);
+  --dim: rgba(255, 255, 255, 0.55);
+  --dimmer: rgba(255, 255, 255, 0.34); /* disabled / decorative only */
+
+  /* Accent (violet) */
+  --accent: #7358f7; /* fills, bars, focus */
+  --accent-hover: #6a4eee;
+  --accent-active: #6146e6;
+  --accent-text: #a28bff; /* links / small text on dark */
+  --accent-soft: rgba(115, 88, 247, 0.16);
+  --accent-line: rgba(115, 88, 247, 0.4);
+  --on-accent: #ffffff; /* label on --accent fills */
+
+  /* Semantic: solid, soft tint (~14%), line (~32%) */
+  --info: #4ecdff; /* informational and progress only */
+  --info-soft: rgba(78, 205, 255, 0.14);
+  --info-line: rgba(78, 205, 255, 0.32);
+  --ok: #3ddc97;
+  --ok-soft: rgba(61, 220, 151, 0.14);
+  --ok-line: rgba(61, 220, 151, 0.32);
+  --warn: #ffb84d;
+  --warn-soft: rgba(255, 184, 77, 0.14);
+  --warn-line: rgba(255, 184, 77, 0.32);
+  --err: #ff6b6b;
+  --err-soft: rgba(255, 107, 107, 0.14);
+  --err-soft-2: rgba(255, 107, 107, 0.22); /* danger hover */
+  --err-line: rgba(255, 107, 107, 0.32);
+  --rec: #ff5a6e;
+  --rec-soft: rgba(255, 90, 110, 0.14);
+  --rec-line: rgba(255, 90, 110, 0.32);
+
+  /* Overlays */
+  --scrim: rgba(5, 5, 8, 0.68);
+  --shadow-overlay: 0 6px 20px rgba(0, 0, 0, 0.45); /* the floating overlay only */
+  --scroll-thumb: rgba(255, 255, 255, 0.13);
+  --scroll-thumb-hover: rgba(255, 255, 255, 0.22);
+  --opacity-disabled: 0.4;
+
+  /* Type */
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, monospace;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px; /* body */
+  --fs-lg: 15px;
+  --fs-xl: 20px;
+  --fs-2xl: 28px;
+  --fw-regular: 400;
+  --fw-semibold: 600;
+  --lh-tight: 1.25;
+  --lh-body: 1.5;
+
+  /* Radius */
+  --r-sm: 6px; /* kbd, badge */
+  --r-md: 10px; /* controls, inputs */
+  --r-lg: 14px; /* cards, sheets */
+  --r-pill: 999px; /* pills, switches */
+
+  /* Spacing: 4px grid, --sp-N = N x 4px */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* Sizes */
+  --control-h: 32px;
+  --control-h-sm: 26px;
+  --icon: 16px;
+  --nav-w: 220px;
+  --panel-w: 340px;
+  --thumb-size: 72px;
+  --header-h: 64px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms; /* hover / press */
+  --dur: 200ms; /* state change */
+
+  /* Focus */
+  --focus-ring: 2px solid var(--accent);
+  --focus-offset: 2px;
+}

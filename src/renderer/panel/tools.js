@@ -11,12 +11,16 @@
   const tray = [];           // [{ path, dataUri }] frames for a spritesheet
 
   const shown = () => result?.images?.[selected] || null;
-  const note = (msg, cls) => { const n = $('toolNote'); n.textContent = msg || ''; n.style.color = cls === 'bad' ? 'var(--bad)' : cls === 'good' ? 'var(--good)' : 'var(--faint)'; };
+  const note = (msg, cls) => {
+    const n = $('toolNote');
+    n.textContent = msg || '';
+    n.className = 'tool-note' + (cls === 'bad' ? ' is-bad' : cls === 'good' ? ' is-good' : '');
+  };
 
   // --- tabs ----------------------------------------------------------------
   document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === t));
-    document.querySelectorAll('.tabbody').forEach((b) => { b.hidden = b.dataset.body !== t.dataset.tab; });
+    document.querySelectorAll('.tab').forEach((x) => x.setAttribute('aria-selected', String(x === t)));
+    document.querySelectorAll('.tabpanel').forEach((b) => { b.hidden = b.dataset.body !== t.dataset.tab; });
     note('');
   }));
 
@@ -135,6 +139,7 @@
       : u.state === 'ready' ? `Beeld ${u.next} is ready. It installs when you quit, or now:` : '';
 
     $('versionText').textContent = `Beeld ${u.version}`;
+    $('verLabel').textContent = u.version ? `v${u.version}` : '';
     $('updateHint').textContent =
       u.state === 'dev' ? 'Updates only run in the installed app.'
       : u.state === 'current' ? 'You are on the latest version.'

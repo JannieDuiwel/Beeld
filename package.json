@@ -14,7 +14,7 @@
     "check-models": "node tools/check-models.js",
     "postinstall": "node tools/make-icons.js",
     "build": "npm run icons && electron-builder --win --x64",
-    "test": "node test/catalogue.test.js && node test/store.test.js && node test/providers.test.js && node test/assets.test.js && node test/updater.test.js",
+    "test": "node test/catalogue.test.js && node test/store.test.js && node test/providers.test.js && node test/assets.test.js && node test/updater.test.js && node test/panel.test.js",
     "release": "npm run icons && electron-builder --win --x64 --publish always",
     "mcp": "node mcp/server.js"
   },

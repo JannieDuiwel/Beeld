@@ -1,0 +1,63 @@
+/* Beeld panel: what the shared kit does not cover. Tokens only. */
+
+.stage { overflow: auto; }
+#empty { max-width: 440px; }
+#empty b { color: var(--text); font-weight: var(--fw-semibold); }
+
+/* Input image drop zone */
+#dropEmpty, #dropFilled { display: grid; justify-items: center; gap: var(--sp-1); }
+#preview { display: block; max-width: 100%; max-height: 150px; border-radius: var(--r-sm); }
+
+/* Results on the stage */
+.results { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; justify-content: center; max-width: 100%; max-height: 100%; }
+.results img {
+  max-width: 100%;
+  max-height: 100%;
+  border: 1px solid var(--stroke);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+.results img.px { image-rendering: pixelated; }
+.results.multi img.sel { outline-color: var(--accent); }
+.results.multi img:not(.sel) { opacity: 0.72; }
+.results.multi img:hover { opacity: 1; }
+.busy { display: grid; justify-items: center; gap: var(--sp-3); color: var(--dim); text-align: center; }
+.stage-error { max-width: 560px; }
+.stage-error .notice__body { white-space: pre-wrap; }
+
+/* History strip */
+.thumb--tool { border-style: dashed; }
+.strip-bar__empty { font-size: var(--fs-sm); }
+
+/* Game tools */
+.tools { flex: none; background: var(--panel); border-top: 1px solid var(--stroke); }
+.tabs__gap { width: var(--sp-2); }
+.tabpanel .input--path { width: 280px; }
+.tool-note { margin: 0; min-height: var(--sp-6); padding: 0 var(--sp-6) var(--sp-2); background: var(--panel-2); font-size: var(--fs-sm); color: var(--dim); }
+.tool-note.is-good { color: var(--ok); }
+.tool-note.is-bad { color: var(--err); white-space: pre-wrap; }
+.tray { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); }
+.tray img { width: 34px; height: 34px; object-fit: contain; image-rendering: pixelated; background: var(--bg); border: 1px solid var(--stroke); border-radius: var(--r-sm); cursor: pointer; }
+
+/* Settings sheet (the kit's .scrim + .modal, opened by JS with .open) */
+#settings { display: none; }
+#settings.open { display: grid; }
+#settings .modal { width: min(560px, 100%); max-height: 88vh; }
+#settings .modal__body { display: grid; gap: var(--sp-4); }
+.modal__foot .push-left { margin-right: auto; }
+.version-row { display: flex; align-items: center; gap: var(--sp-3); }
+.prov { padding: var(--sp-3); border: 1px solid var(--stroke); border-radius: var(--r-md); }
+.prov h3 { display: flex; align-items: center; gap: var(--sp-2); margin: 0 0 2px; font: var(--fw-semibold) var(--fs-md) / var(--lh-tight) var(--font-ui); color: var(--text); }
+.prov p { margin: 0 0 var(--sp-3); font-size: var(--fs-sm); color: var(--dim); }
+.prov-row { display: flex; align-items: center; gap: var(--sp-2); }
+.prov-row .input { flex: 1; min-width: 0; }
+.prov a { color: var(--accent-text); cursor: pointer; text-decoration: none; }
+.prov a:hover { text-decoration: underline; }
+.dot { flex: none; width: 7px; height: 7px; background: var(--dimmer); border-radius: var(--r-pill); }
+.dot.on { background: var(--ok); }
+.status { min-height: var(--sp-4); margin-top: var(--sp-2); font-size: var(--fs-sm); color: var(--dim); }
+.status.ok { color: var(--ok); }
+.status.bad { color: var(--err); white-space: pre-wrap; }
