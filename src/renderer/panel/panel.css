@@ -49,6 +49,7 @@
 #settings .modal__body { display: grid; gap: var(--sp-4); }
 .modal__foot .push-left { margin-right: auto; }
 .version-row { display: flex; align-items: center; gap: var(--sp-3); }
+#provList { display: grid; gap: var(--sp-3); }
 .prov { padding: var(--sp-3); border: 1px solid var(--stroke); border-radius: var(--r-md); }
 .prov h3 { display: flex; align-items: center; gap: var(--sp-2); margin: 0 0 2px; font: var(--fw-semibold) var(--fs-md) / var(--lh-tight) var(--font-ui); color: var(--text); }
 .prov p { margin: 0 0 var(--sp-3); font-size: var(--fs-sm); color: var(--dim); }
